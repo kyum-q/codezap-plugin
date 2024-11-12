@@ -17,5 +17,9 @@
         <action id="Custom.Login" class="com.codezap.action.LoginAction" text="CodeZap Login" description="코드잽 로그인">
             <add-to-group group-id="GenerateGroup" anchor="first"/>
         </action>
+        <action id="Custom.Template.Create" class="com.codezap.action.CreateTemplateAction" text="CodeZap Upload"
+                description="코드잽 템플릿 업로드">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
     </actions>
 </idea-plugin>
