@@ -13,4 +13,9 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
     </extensions>
+    <actions>
+        <action id="Custom.Login" class="com.codezap.action.LoginAction" text="CodeZap Login" description="코드잽 로그인">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+    </actions>
 </idea-plugin>
