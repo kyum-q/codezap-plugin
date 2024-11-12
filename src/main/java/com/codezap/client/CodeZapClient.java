@@ -7,9 +7,16 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.codezap.dto.request.LoginRequest;
+import com.codezap.dto.response.FindAllCategoriesResponse;
+import com.codezap.dto.response.FindCategoryResponse;
 import com.codezap.dto.response.LoginResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +30,7 @@ public class CodeZapClient {
     public static final String HEADER_COOKIE = "Cookie";
     public static final String APPLICATION_JSON_UTF_8 = "application/json; utf-8";
     public static final String LOGIN_URL = "/login";
+    public static final String CATEGORIES_URL = "/categories?memberId=";
 
     private static String cookie;
     private static LoginResponse loginResponse;
@@ -37,8 +45,10 @@ public class CodeZapClient {
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 setCookie(connection);
-                setLoginResponse(makeLoginResponse(connection));
-                return loginResponse;
+                LoginResponse newResponse = makeResponse(connection, jsonResponse ->
+                        new LoginResponse(jsonResponse.get("memberId").asLong(), jsonResponse.get("name").asText()));
+                setLoginResponse(newResponse);
+                return newResponse;
             }
         } finally {
             if (connection != null) {
@@ -47,6 +57,37 @@ public class CodeZapClient {
         }
 
         throw new RuntimeException();
+    }
+
+    @Nullable
+    public static FindAllCategoriesResponse getCategories() throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            connection = getHttpURLConnection(CATEGORIES_URL + loginResponse.memberId(), HttpMethod.GET, null);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return makeResponse(connection, (CodeZapClient::makeCategoriesResponse));
+            }
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return null;
+    }
+
+    @NotNull
+    private static FindAllCategoriesResponse makeCategoriesResponse(JsonNode jsonResponse) {
+        List<FindCategoryResponse> categories = new ArrayList<>();
+        JsonNode categoriesNode = jsonResponse.get("categories");
+
+        for (JsonNode categoryNode : categoriesNode) {
+            long id = categoryNode.get("id").asLong();
+            String name = categoryNode.get("name").asText();
+            categories.add(new FindCategoryResponse(id, name));
+        }
+        return new FindAllCategoriesResponse(categories);
     }
 
     private static HttpURLConnection getHttpURLConnection(
@@ -77,7 +118,7 @@ public class CodeZapClient {
         }
     }
 
-    private static LoginResponse makeLoginResponse(HttpURLConnection connection) throws IOException {
+    private static <T> T makeResponse(HttpURLConnection connection, MakeResponse<T> makeResponse) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String inputLine;
         StringBuilder response = new StringBuilder();
@@ -88,11 +129,7 @@ public class CodeZapClient {
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonResponse = objectMapper.readTree(response.toString());
-
-        long memberId = jsonResponse.get("memberId").asLong();
-        String name = jsonResponse.get("name").asText();
-
-        return new LoginResponse(memberId, name);
+        return makeResponse.make(jsonResponse);
     }
 
     private static synchronized void setCookie(HttpURLConnection connection) {
