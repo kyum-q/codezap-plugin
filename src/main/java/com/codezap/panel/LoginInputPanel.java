@@ -3,7 +3,6 @@ package com.codezap.panel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import javax.annotation.Nullable;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -18,7 +17,6 @@ public class LoginInputPanel {
     private LoginInputPanel() {
     }
 
-    @Nullable
     public static LoginRequest inputLogin() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -33,7 +31,8 @@ public class LoginInputPanel {
 
         gbc.gridx = 1;
         gbc.weightx = 0.8;
-        panel.add(new JTextField(20), gbc);
+        JTextField idField = new JTextField(20);
+        panel.add(idField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -42,18 +41,16 @@ public class LoginInputPanel {
 
         gbc.gridx = 1;
         gbc.weightx = 0.8;
-        panel.add(new JPasswordField(20), gbc);
+        JPasswordField passwordField = new JPasswordField(20);
+        panel.add(passwordField, gbc);
 
         int option = JOptionPane.showConfirmDialog(
                 null, panel, "로그인", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (option == JOptionPane.OK_OPTION) {
-            String username = ((JTextField) panel.getComponent(1)).getText();
-            String password = new String(((JPasswordField) panel.getComponent(3)).getPassword());
-
-            return new LoginRequest(username, password);
+        if (option == JOptionPane.PLAIN_MESSAGE) {
+            throw new RuntimeException();
         }
 
-        return null;
+        return new LoginRequest(idField.getText(), new String(passwordField.getPassword()));
     }
 }
