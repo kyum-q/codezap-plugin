@@ -2,13 +2,19 @@ package com.codezap.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.codezap.exception.ErrorType;
+import com.codezap.exception.PluginException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -62,6 +68,20 @@ public class CodeZapClient {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonResponse = objectMapper.readTree(response.toString());
         return makeResponse.make(jsonResponse);
+    }
+
+    public static String getErrorMessage(HttpURLConnection connection) throws IOException {
+        try (InputStream errorStream = connection.getErrorStream()) {
+            String errorMessage = new BufferedReader(new InputStreamReader(errorStream))
+                    .lines()
+                    .collect(Collectors.joining("\n"));
+            Pattern pattern = Pattern.compile("\"detail\":\"([^\"]*)\"");
+            Matcher matcher = pattern.matcher(errorMessage);
+            if (matcher.find()) {
+                return matcher.group(1).replace("\\n", "\n");
+            }
+        }
+        throw new PluginException("서버 에러가 발생했습니다.\n 다시 시도해주세요.", ErrorType.SERVER_ERROR);
     }
 
     public static synchronized void setCookie(HttpURLConnection connection) {

@@ -5,34 +5,32 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import com.codezap.client.CodeZapClient;
 import com.codezap.client.HttpMethod;
 import com.codezap.dto.response.FindAllCategoriesResponse;
 import com.codezap.dto.response.FindCategoryResponse;
+import com.codezap.exception.PluginException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class CategoryService {
 
     private static final String CATEGORIES_URL = "/categories?memberId=";
 
-    @Nullable
     public FindAllCategoriesResponse getCategories(long memberId) throws IOException {
         HttpURLConnection connection = null;
         try {
             connection = CodeZapClient.getHttpURLConnection(CATEGORIES_URL + memberId, HttpMethod.GET, null);
 
             int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                return CodeZapClient.makeResponse(connection, (this::makeCategoriesResponse));
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new PluginException(CodeZapClient.getErrorMessage(connection), responseCode);
             }
+            return CodeZapClient.makeResponse(connection, (this::makeCategoriesResponse));
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
-        return null;
     }
 
     private FindAllCategoriesResponse makeCategoriesResponse(JsonNode jsonResponse) {

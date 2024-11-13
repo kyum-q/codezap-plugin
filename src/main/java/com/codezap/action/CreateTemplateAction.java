@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.codezap.client.CodeZapClient;
 import com.codezap.dto.request.TemplateCreateRequest;
+import com.codezap.exception.ErrorType;
+import com.codezap.exception.PluginException;
 import com.codezap.panel.CreateTemplatePanel;
 import com.codezap.service.CategoryService;
 import com.codezap.service.LoginService;
@@ -24,20 +26,20 @@ public class CreateTemplateAction extends AnAction {
     private static final String NEED_FILE_SELECT = "파일 선택 필수";
     private static final String SUCCESS_TEMPLATE_UPLOAD = "템플릿 생성 완료";
     private static final String SUCCESS_TEMPLATE_UPLOAD_MESSAGE = "정상적으로 템플릿이 생성되었습니다.";
-    private static final String FAIL_TEMPLATE_UPLOAD_MESSAGE = "템플릿 생성이 실패했습니다.";
     private static final String FAIL_TEMPLATE_UPLOAD = "템플릿 생성 실패";
+    public static final String SERVER_ERROR_MESSAGE = "서버의 문제로 템플릿 생성에 실패하였습니다.\n 다시 시도해주세요.";
 
     private final LoginService loginService = new LoginService();
     private final TemplateService templateService = new TemplateService();
     private final CategoryService categoryService = new CategoryService();
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
         if (!CodeZapClient.existsCookie() && !loginService.login()) {
             return;
         }
 
-        VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        VirtualFile virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE);
         if (virtualFile == null) {
             Messages.showWarningDialog(NEED_FILE_SELECT_MESSAGE, NEED_FILE_SELECT);
             return;
@@ -45,7 +47,7 @@ public class CreateTemplateAction extends AnAction {
 
         try {
             String fileName = virtualFile.getName();
-            String content = findContents(virtualFile, e.getData(CommonDataKeys.EDITOR));
+            String content = findContents(virtualFile, event.getData(CommonDataKeys.EDITOR));
 
             TemplateCreateRequest request = CreateTemplatePanel.inputCreateTemplate(
                     fileName, content, categoryService.getCategories(loginService.getMemberId()));
@@ -53,7 +55,11 @@ public class CreateTemplateAction extends AnAction {
             templateService.createTemplate(request);
             Messages.showInfoMessage(SUCCESS_TEMPLATE_UPLOAD_MESSAGE, SUCCESS_TEMPLATE_UPLOAD);
         } catch (IOException ignored) {
-            Messages.showInfoMessage(FAIL_TEMPLATE_UPLOAD_MESSAGE, FAIL_TEMPLATE_UPLOAD);
+            Messages.showInfoMessage(SERVER_ERROR_MESSAGE, FAIL_TEMPLATE_UPLOAD);
+        } catch (PluginException e) {
+            if (!e.matchErrorType(ErrorType.CANCEL_TAP)) {
+                Messages.showInfoMessage(e.getMessage(), FAIL_TEMPLATE_UPLOAD);
+            }
         }
     }
 
@@ -68,7 +74,7 @@ public class CreateTemplateAction extends AnAction {
         try {
             return new String(virtualFile.contentsToByteArray());
         } catch (IOException ex) {
-            throw new RuntimeException();
+            throw new PluginException("파일이 선택되지 않았습니다.", ErrorType.SERVER_ERROR);
         }
     }
 }

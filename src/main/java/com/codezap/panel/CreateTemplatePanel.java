@@ -16,6 +16,8 @@ import com.codezap.dto.request.CreateSourceCodeRequest;
 import com.codezap.dto.request.TemplateCreateRequest;
 import com.codezap.dto.response.FindAllCategoriesResponse;
 import com.codezap.dto.response.FindCategoryResponse;
+import com.codezap.exception.ErrorType;
+import com.codezap.exception.PluginException;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -28,9 +30,6 @@ public class CreateTemplatePanel {
     public static TemplateCreateRequest inputCreateTemplate(
             String fileName, String content, FindAllCategoriesResponse findAllCategoriesResponse
     ) {
-        if (findAllCategoriesResponse == null) {
-            throw new RuntimeException();
-        }
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -89,7 +88,7 @@ public class CreateTemplatePanel {
                 null, panel, "템플릿 생성", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (option == JOptionPane.CANCEL_OPTION) {
-            throw new RuntimeException();
+            throw new PluginException(ErrorType.CANCEL_TAP);
         }
 
         long categoryId = findAllCategoriesResponse.getId((String) category.getSelectedItem());

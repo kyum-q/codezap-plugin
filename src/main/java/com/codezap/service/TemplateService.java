@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import com.codezap.client.CodeZapClient;
 import com.codezap.client.HttpMethod;
 import com.codezap.dto.request.TemplateCreateRequest;
+import com.codezap.exception.PluginException;
 
 public class TemplateService {
 
@@ -18,7 +19,7 @@ public class TemplateService {
 
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_CREATED) {
-                throw new RuntimeException();
+                throw new PluginException(CodeZapClient.getErrorMessage(connection), responseCode);
             }
         } finally {
             if (connection != null) {

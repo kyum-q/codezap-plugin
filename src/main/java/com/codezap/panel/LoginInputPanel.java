@@ -10,6 +10,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import com.codezap.dto.request.LoginRequest;
+import com.codezap.exception.ErrorType;
+import com.codezap.exception.PluginException;
 import com.intellij.util.ui.JBUI;
 
 public class LoginInputPanel {
@@ -45,10 +47,10 @@ public class LoginInputPanel {
         panel.add(passwordField, gbc);
 
         int option = JOptionPane.showConfirmDialog(
-                null, panel, "로그인", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                null, panel, "로그인이 필요합니다.", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (option == JOptionPane.CANCEL_OPTION) {
-            throw new RuntimeException();
+            throw new PluginException(ErrorType.CANCEL_TAP);
         }
 
         return new LoginRequest(idField.getText(), new String(passwordField.getPassword()));
