@@ -7,7 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import com.codezap.client.CodeZapClient;
 import com.codezap.dto.request.TemplateCreateRequest;
 import com.codezap.panel.CreateTemplatePanel;
+import com.codezap.service.CategoryService;
 import com.codezap.service.LoginService;
+import com.codezap.service.TemplateService;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -26,6 +28,8 @@ public class CreateTemplateAction extends AnAction {
     private static final String FAIL_TEMPLATE_UPLOAD = "템플릿 생성 실패";
 
     private final LoginService loginService = new LoginService();
+    private final TemplateService templateService = new TemplateService();
+    private final CategoryService categoryService = new CategoryService();
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -42,9 +46,11 @@ public class CreateTemplateAction extends AnAction {
         try {
             String fileName = virtualFile.getName();
             String content = findContents(virtualFile, e.getData(CommonDataKeys.EDITOR));
+
             TemplateCreateRequest request = CreateTemplatePanel.inputCreateTemplate(
-                    fileName, content, CodeZapClient.getCategories(loginService.getMemberId()));
-            CodeZapClient.createTemplate(request);
+                    fileName, content, categoryService.getCategories(loginService.getMemberId()));
+
+            templateService.createTemplate(request);
             Messages.showInfoMessage(SUCCESS_TEMPLATE_UPLOAD_MESSAGE, SUCCESS_TEMPLATE_UPLOAD);
         } catch (IOException ignored) {
             Messages.showInfoMessage(FAIL_TEMPLATE_UPLOAD_MESSAGE, FAIL_TEMPLATE_UPLOAD);
