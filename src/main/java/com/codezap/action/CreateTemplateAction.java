@@ -45,7 +45,8 @@ public class CreateTemplateAction extends AnAction {
         try {
             String fileName = virtualFile.getName();
             String content = findContents(virtualFile, e.getData(CommonDataKeys.EDITOR));
-            TemplateCreateRequest request = CreateTemplatePanel.inputCreateTemplate(fileName, content);
+            TemplateCreateRequest request = CreateTemplatePanel.inputCreateTemplate(
+                    fileName, content, CodeZapClient.getCategories());
             CodeZapClient.createTemplate(request);
             Messages.showInfoMessage(SUCCESS_TEMPLATE_UPLOAD_MESSAGE, SUCCESS_TEMPLATE_UPLOAD);
         } catch (IOException ignored) {
