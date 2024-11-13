@@ -35,7 +35,6 @@ public class CodeZapClient {
     private static final String CATEGORIES_URL = "/categories?memberId=";
 
     private static String cookie;
-    private static LoginResponse loginResponse;
 
     private CodeZapClient() {}
 
@@ -47,10 +46,8 @@ public class CodeZapClient {
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 setCookie(connection);
-                LoginResponse newResponse = makeResponse(connection, jsonResponse ->
+                return makeResponse(connection, jsonResponse ->
                         new LoginResponse(jsonResponse.get("memberId").asLong(), jsonResponse.get("name").asText()));
-                setLoginResponse(newResponse);
-                return newResponse;
             }
         } finally {
             if (connection != null) {
@@ -78,10 +75,10 @@ public class CodeZapClient {
     }
 
     @Nullable
-    public static FindAllCategoriesResponse getCategories() throws IOException {
+    public static FindAllCategoriesResponse getCategories(long memberId) throws IOException {
         HttpURLConnection connection = null;
         try {
-            connection = getHttpURLConnection(CATEGORIES_URL + loginResponse.memberId(), HttpMethod.GET, null);
+            connection = getHttpURLConnection(CATEGORIES_URL + memberId, HttpMethod.GET, null);
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -162,15 +159,7 @@ public class CodeZapClient {
         cookie = newCookie.toString();
     }
 
-    private static synchronized void setLoginResponse(LoginResponse response) {
-        loginResponse = response;
-    }
-
     public static boolean existsCookie() {
         return cookie != null;
-    }
-
-    public static synchronized LoginResponse getLoginResponse() {
-        return loginResponse;
     }
 }
