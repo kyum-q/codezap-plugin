@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,12 +50,12 @@ public class CreateTemplatePanel {
         constraints.gridx = 1;
         constraints.gridy = 1;
         constraints.weightx = 0.8;
-        ComboBox<String> category = new ComboBox<>(
+        ComboBox<String> categoryComboBox = new ComboBox<>(
                 findAllCategoriesResponse.categories().stream()
                         .map(FindCategoryResponse::name)
                         .toArray(String[]::new)
         );
-        panel.add(category, constraints);
+        panel.add(categoryComboBox, constraints);
 
         constraints.gridx = 0;
         constraints.gridy = 2;
@@ -84,6 +85,13 @@ public class CreateTemplatePanel {
         JScrollPane scrollPane = new JBScrollPane(contentArea);
         panel.add(scrollPane, constraints);
 
+        constraints.gridx = 1;
+        constraints.gridy = 4;
+        constraints.weightx = 0.5;
+        constraints.weighty = 0.0;
+        JCheckBox isPrivateCheckBox = new JCheckBox("비공개");
+        panel.add(isPrivateCheckBox, constraints);
+
         int option = JOptionPane.showConfirmDialog(
                 null, panel, "템플릿 생성", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
@@ -91,13 +99,14 @@ public class CreateTemplatePanel {
             throw new PluginException(ErrorType.CANCEL_TAP);
         }
 
-        long categoryId = findAllCategoriesResponse.getId((String) category.getSelectedItem());
-        return makeTemplateCreateRequest(titleField.getText(), fileName, content, categoryId);
+        long categoryId = findAllCategoriesResponse.getId((String) categoryComboBox.getSelectedItem());
+        return makeTemplateCreateRequest(titleField.getText(), fileName, content, categoryId, isPrivateCheckBox.isSelected());
     }
 
     private static TemplateCreateRequest makeTemplateCreateRequest(
-            String title, String fileName, String content, long categoryId
+            String title, String fileName, String content, long categoryId, boolean isPrivate
     ) {
+        String visibility = isPrivate ? "PRIVATE" : "PUBLIC";
         return new TemplateCreateRequest(
                 title,
                 "",
@@ -105,7 +114,7 @@ public class CreateTemplatePanel {
                 1,
                 categoryId,
                 List.of(),
-                "PUBLIC"
+                visibility
         );
     }
 }
