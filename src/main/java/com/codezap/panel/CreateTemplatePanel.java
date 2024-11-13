@@ -88,7 +88,7 @@ public class CreateTemplatePanel {
         int option = JOptionPane.showConfirmDialog(
                 null, panel, "템플릿 생성", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (option == JOptionPane.PLAIN_MESSAGE) {
+        if (option == JOptionPane.CANCEL_OPTION) {
             throw new RuntimeException();
         }
 

@@ -47,7 +47,7 @@ public class LoginInputPanel {
         int option = JOptionPane.showConfirmDialog(
                 null, panel, "로그인", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (option == JOptionPane.PLAIN_MESSAGE) {
+        if (option == JOptionPane.CANCEL_OPTION) {
             throw new RuntimeException();
         }
 
